@@ -1,0 +1,109 @@
+﻿<Window x:Class="VideoZoom.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:VideoZoom"
+        mc:Ignorable="d"
+
+        Title="VLC Zoom: CPU option with VLC callbacks"
+        Width="1100" Height="600"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <!-- Left: main zoom area -->
+            <ColumnDefinition Width="300" />
+            <!-- Right: miniature -->
+        </Grid.ColumnDefinitions>
+
+        <!-- Left side: main video + bottom control bar -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="auto" />
+                <!-- narrow bottom strip -->
+            </Grid.RowDefinitions>
+
+            <!-- Main zoomed view -->
+            <Grid Background="Black" Grid.Row="0">
+                <!-- We'll show a Cropped+Scaled view of the source WriteableBitmap -->
+                <Image x:Name="MainImage"
+                       SnapsToDevicePixels="True"
+                       Stretch="Fill"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <!-- Transparent event catcher for mouse interactions -->
+                <Canvas x:Name="MainHitLayer"
+                        Background="#01FFFFFF" 
+                        MouseWheel="MainHitLayer_MouseWheel"
+                        MouseDown="MainHitLayer_MouseDown"
+                        MouseMove="MainHitLayer_MouseMove"
+                        MouseUp="MainHitLayer_MouseUp" />
+            </Grid>
+
+
+
+
+            <!-- Bottom control strip -->
+            <Grid Grid.Row="1" Background="#222" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="28"/>
+                    <!-- Slider row -->
+                    <RowDefinition Height="40"/>
+                    <!-- Buttons row -->
+                </Grid.RowDefinitions>
+
+                <!-- Slider -->
+                <Slider x:Name="SeekSlider"
+                        Grid.Row="0"
+                        Minimum="0"
+                        Maximum="100"
+                        Value="0"
+                        Margin="8,4"
+                        VerticalAlignment="Center"
+                        TickFrequency="1"
+                        IsSnapToTickEnabled="False"
+                        Background="#333"
+                        Foreground="Yellow"
+                        ValueChanged="SeekSlider_ValueChanged"/>
+
+                <!-- Buttons -->
+                <DockPanel Grid.Row="1" LastChildFill="True" Background="#222"  Margin="0,0,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="8,0" VerticalAlignment="Center">
+                        <Button Content="Open" Click="Open_Click" Margin="0,4,8,4"/>
+                        <Button Content="Play" Click="Play_Click" Margin="0,4,8,4"/>
+                        <Button Content="Pause" Click="Pause_Click" Margin="0,4,8,4"/>
+                        <Button Content="Stop" Click="Stop_Click" Margin="0,4,8,4"/>
+                        <Separator Width="16"/>
+                        <TextBlock Foreground="Yellow" VerticalAlignment="Center" Text="{Binding ZoomText}"/>
+                        <Separator Width="16"/>
+                        <TextBlock Foreground="White" VerticalAlignment="Center" Text="{Binding CurrentOpenedFilePath}"/>
+                    </StackPanel>
+                </DockPanel>
+            </Grid>
+
+        </Grid>
+
+
+        <!-- Right side: miniature with yellow rectangle overlay -->
+        <Grid Grid.Column="1" Background="Black">
+            <Grid.Margin>
+                <Thickness>8</Thickness>
+            </Grid.Margin>
+
+            <Grid>
+                <Image x:Name="MiniImage"
+                       SnapsToDevicePixels="True"
+                       Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <Canvas x:Name="MiniOverlay" IsHitTestVisible="False">
+                    <!-- yellow rect drawn via code-behind or data binding -->
+                    <Rectangle x:Name="MiniViewRect"
+                               Stroke="Yellow" StrokeThickness="2"
+                               Fill="#20FFFF00" />
+                </Canvas>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

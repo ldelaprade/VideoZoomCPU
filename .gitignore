@@ -1,0 +1,58 @@
+# Build results
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+TestResults/
+*.log
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+*.dbmdl
+*.pdb
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+*.snupkg
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Others
+*.DS_Store
+*.idea/
+*.swp
+*.bak
+*.tmp
+
+# Publish output
+publish/
+# Rider
+.idea/
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# DotCover
+*.dotCover
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# StyleCop
+StyleCopReport.xml
+
+# JetBrains Rider
+.idea/

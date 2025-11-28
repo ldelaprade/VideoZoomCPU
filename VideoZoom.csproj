@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+
+	<PropertyGroup>
+		<Nullable>enable</Nullable>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<Platforms>x64</Platforms>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<EnableMsixTooling>true</EnableMsixTooling>
+
+
+			<GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+			<SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+			<AssemblyTitle>VLC Zoom Demo</AssemblyTitle>
+		<ApplicationIcon>favicon.ico</ApplicationIcon>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		
+	</PropertyGroup>	
+	
+  <ItemGroup>
+
+	<PackageReference Include="LibVLCSharp" Version="3.*" />
+	<PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.*" />
+	<PackageReference Include="CommunityToolkit.Mvvm" Version="8.*" />
+
+  </ItemGroup>
+
+
+</Project>
