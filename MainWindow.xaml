@@ -31,7 +31,7 @@
                 <!-- We'll show a Cropped+Scaled view of the source WriteableBitmap -->
                 <Image x:Name="MainImage"
                        SnapsToDevicePixels="True"
-                       Stretch="Fill"
+                       Stretch="Uniform"
                        RenderOptions.BitmapScalingMode="HighQuality" />
                 <!-- Transparent event catcher for mouse interactions -->
                 <Canvas x:Name="MainHitLayer"
@@ -97,7 +97,12 @@
                        SnapsToDevicePixels="True"
                        Stretch="Uniform"
                        RenderOptions.BitmapScalingMode="HighQuality" />
-                <Canvas x:Name="MiniOverlay" IsHitTestVisible="False">
+                <Canvas x:Name="MiniOverlay"
+                        Background="#01000000"
+                        MouseDown="MiniOverlay_MouseDown"
+                        MouseMove="MiniOverlay_MouseMove"
+                        MouseUp="MiniOverlay_MouseUp"
+                        Cursor="Hand">
                     <!-- yellow rect drawn via code-behind or data binding -->
                     <Rectangle x:Name="MiniViewRect"
                                Stroke="Yellow" StrokeThickness="2"

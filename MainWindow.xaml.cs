@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     private readonly VlcRenderer _vlc = new();
 
     private bool _isPanning = false;
+    private bool _isMiniDragging = false;
     private Point _lastMouse;
 
     // Current CroppedBitmap feeding MainImage
@@ -83,7 +84,6 @@ public partial class MainWindow : Window
         {
             _mainZoomBitmap = new WriteableBitmap(rect.Width, rect.Height, 96, 96, PixelFormats.Bgra32, null);
             MainImage.Source = _mainZoomBitmap;
-            MainImage.Stretch = Stretch.Fill; // Fill main area
         }
 
         // Copy cropped region into zoom bitmap
@@ -233,6 +233,39 @@ public partial class MainWindow : Window
         }
     }
 
+    private void MiniOverlay_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left || _vlc.VideoW == 0 || _vlc.VideoH == 0) return;
+
+        _isMiniDragging = true;
+        MiniOverlay.CaptureMouse();
+        MiniOverlay.Cursor = Cursors.SizeAll;
+
+        var p = e.GetPosition(MiniOverlay);
+        SetZoomCenterFromMiniPoint(p);
+    }
+
+    private void MiniOverlay_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isMiniDragging) return;
+
+        var p = e.GetPosition(MiniOverlay);
+        SetZoomCenterFromMiniPoint(p);
+    }
+
+    private void MiniOverlay_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton != MouseButton.Left) return;
+
+        _isMiniDragging = false;
+        MiniOverlay.ReleaseMouseCapture();
+
+        if (MiniOverlay.IsMouseOver)
+            MiniOverlay.Cursor = Cursors.Hand;
+        else
+            MiniOverlay.ClearValue(CursorProperty);
+    }
+
     private void MainHitLayer_MouseMove(object sender, MouseEventArgs e)
     {
         if (!_isPanning) return;
@@ -269,18 +302,69 @@ public partial class MainWindow : Window
     private void MapMainControlToSource(Point p, out double srcX, out double srcY)
     {
         var rect = _zoom.GetCropRect();
-        // MainImage uses Stretch=Fill => the cropped bitmap is stretched to control size exactly
-        srcX = rect.X + p.X * rect.Width / Math.Max(1, MainImage.ActualWidth);
-        srcY = rect.Y + p.Y * rect.Height / Math.Max(1, MainImage.ActualHeight);
+        var metrics = GetMainDrawMetrics(rect);
+
+        var xInDraw = Math.Clamp(p.X - metrics.offsetX, 0.0, metrics.drawW);
+        var yInDraw = Math.Clamp(p.Y - metrics.offsetY, 0.0, metrics.drawH);
+
+        srcX = rect.X + xInDraw * rect.Width / Math.Max(1.0, metrics.drawW);
+        srcY = rect.Y + yInDraw * rect.Height / Math.Max(1.0, metrics.drawH);
     }
 
     // For pan speed: how many source pixels per 1 control pixel
     private (double scaleX, double scaleY) GetMainScaleToSource()
     {
         var rect = _zoom.GetCropRect();
-        double sx = rect.Width / Math.Max(1, MainImage.ActualWidth);
-        double sy = rect.Height / Math.Max(1, MainImage.ActualHeight);
+        var metrics = GetMainDrawMetrics(rect);
+        double sx = rect.Width / Math.Max(1.0, metrics.drawW);
+        double sy = rect.Height / Math.Max(1.0, metrics.drawH);
         return (sx, sy);
+    }
+
+    private (double drawW, double drawH, double offsetX, double offsetY) GetMainDrawMetrics(Int32Rect rect)
+    {
+        double controlW = Math.Max(1.0, MainImage.ActualWidth);
+        double controlH = Math.Max(1.0, MainImage.ActualHeight);
+
+        double sourceW = rect.Width > 0 ? rect.Width : Math.Max(1.0, _mainZoomBitmap?.PixelWidth ?? 1);
+        double sourceH = rect.Height > 0 ? rect.Height : Math.Max(1.0, _mainZoomBitmap?.PixelHeight ?? 1);
+
+        double scale = Math.Min(controlW / sourceW, controlH / sourceH);
+        double drawW = sourceW * scale;
+        double drawH = sourceH * scale;
+        double offsetX = (controlW - drawW) / 2.0;
+        double offsetY = (controlH - drawH) / 2.0;
+
+        return (drawW, drawH, offsetX, offsetY);
+    }
+
+    private void SetZoomCenterFromMiniPoint(Point p)
+    {
+        var metrics = GetMiniDrawMetrics();
+        if (metrics.scale <= 0) return;
+
+        var xInDraw = Math.Clamp(p.X - metrics.offsetX, 0.0, metrics.drawW);
+        var yInDraw = Math.Clamp(p.Y - metrics.offsetY, 0.0, metrics.drawH);
+
+        _zoom.CenterX = xInDraw / metrics.scale;
+        _zoom.CenterY = yInDraw / metrics.scale;
+    }
+
+    private (double scale, double drawW, double drawH, double offsetX, double offsetY) GetMiniDrawMetrics()
+    {
+        double viewW = Math.Max(1.0, MiniImage.ActualWidth);
+        double viewH = Math.Max(1.0, MiniImage.ActualHeight);
+
+        double imgW = Math.Max(1.0, _vlc.VideoW);
+        double imgH = Math.Max(1.0, _vlc.VideoH);
+
+        double scale = Math.Min(viewW / imgW, viewH / imgH);
+        double drawW = imgW * scale;
+        double drawH = imgH * scale;
+        double offsetX = (viewW - drawW) / 2.0;
+        double offsetY = (viewH - drawH) / 2.0;
+
+        return (scale, drawW, drawH, offsetX, offsetY);
     }
 
     protected override void OnClosed(EventArgs e)
